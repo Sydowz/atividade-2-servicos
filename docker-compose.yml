@@ -1,0 +1,38 @@
+services:
+  banco:
+    image: postgres:16
+    environment:
+      POSTGRES_DB: energia
+      POSTGRES_PASSWORD: postgres
+    volumes:
+      - dados_banco:/var/lib/postgresql/data
+
+  dados:
+    build: ./dados
+    environment:
+      DB_HOST: banco
+    depends_on:
+      - banco
+    ports:
+      - "5001:5001"
+
+  processamento:
+    build: ./processamento
+    environment:
+      DADOS_URL: http://dados:5001
+    depends_on:
+      - dados
+    ports:
+      - "5002:5002"
+
+  relatorio:
+    build: ./relatorio
+    environment:
+      PROCESSAMENTO_URL: http://processamento:5002
+    depends_on:
+      - processamento
+    ports:
+      - "5003:5003"
+
+volumes:
+  dados_banco:
